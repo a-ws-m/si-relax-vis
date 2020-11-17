@@ -145,7 +145,7 @@ function drawDispVectors() {
 function getColourMag(disp) {
   // Get a colour depending on the magnitude of the displacement
   const colVal = map(disp.mag(), minMag, maxMag, 0, 255);
-  const c = color(255 - colVal, 0, colVal);
+  const c = color(colVal, 0, 255 - colVal);
   return c
 }
 
