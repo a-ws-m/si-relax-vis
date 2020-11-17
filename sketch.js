@@ -39,6 +39,7 @@ function setup() {
 
   latticePoints = [createVector(0, 0, 0)];
   latticePoints.push(createVector(0.5, 0.5, 0), createVector(0.5, 0, 0.5), createVector(0, 0.5, 0.5));
+  latticePoints.push(createVector(1.5, 1.5, 0), createVector(1.5, 0, 1.5), createVector(0, 1.5, 1.5));
   latticePoints = latticePoints.map(halveVector);
   latticePoints = latticePoints.map(convertVector);
 
