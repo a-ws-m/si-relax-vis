@@ -31,6 +31,10 @@ function setup() {
 
   originalPVectors = getVectors(originalPosTable);
   newPVectors = getVectors(relaxedPosTable);
+
+  originalPVectors = originalPVectors.map(convertCrysToCart);
+  newPVectors = newPVectors.map(convertCrysToCart);
+
   dispVectors = calcDisplacementVectors();
 
   const mags = dispVectors.map(vec => vec.mag());
@@ -38,16 +42,17 @@ function setup() {
   minMag = Math.min.apply(Math, mags);
 
   superCellPoints = [createVector(0, 0, 0)];  // Just a single cell
-  const periodicNeg = [createVector(-1, -1, -1), createVector(-1, -1, 0), createVector(-1, 0, -1), createVector(0, -1, -1)];
-  const periodicUnit = [createVector(-1, 0, 0), createVector(0, -1, 0), createVector(0, 0, -1)];
-  superCellPoints = superCellPoints.concat(periodicNeg, periodicUnit);
-  // superCellPoints.push(createVector(-0.5, 0, 0.5), createVector(0, 0.5, 0.5), createVector(-0.5, 0.5, 0));
+  superCellPoints.push(createVector(1, 0, 0)); // Required
+  superCellPoints.push(createVector(0, 0, -1)); // Required
+  superCellPoints.push(createVector(0, -1, 0)); // Needed for period!
+  superCellPoints.push(createVector(1, -1, -1)); // Also needed!
+  superCellPoints.push(createVector(0, -1, -1)); // To surround our favourite vacancy
+  superCellPoints.push(createVector(1, -1, 0)); // To surround our second favourite vacancy
 
   superCellPoints = superCellPoints.map(convertVector);
 
   latticePoints = [createVector(0, 0, 0)];
   latticePoints.push(createVector(0.5, 0.5, 0), createVector(0.5, 0, 0.5), createVector(0, 0.5, 0.5));
-  latticePoints = latticePoints.map(halveVector);
   latticePoints = latticePoints.map(convertVector);
 
 
@@ -58,8 +63,14 @@ function setup() {
   testLattice = testLattice.map(convertVector);
 }
 
-function halveVector(vector) {
-  return p5.Vector.mult(vector, 0.5);
+function convertCrysToCart(vector) {
+  const fccVecs = [createVector(-0.5, 0, 0.5), createVector(0, 0.5, 0.5), createVector(-0.5, 0.5, 0)];
+  const vecArray = vector.array();
+  let cartVector = createVector(0, 0, 0);
+  for (let i = 0; i < fccVecs.length; i++) {
+    cartVector.add(p5.Vector.mult(fccVecs[i], vecArray[i]));
+  }
+  return convertVector(cartVector);
 }
 
 function getVectors(table) {
@@ -74,12 +85,9 @@ function getVectors(table) {
 
 function calcDisplacementVectors() {
   // Calculate the displacement vectors for each atom
-  const convertedOrigins = originalPVectors.map(convertVector);
-  const convertedNew = newPVectors.map(convertVector);
-
   let displacements = [];
-  for (let i = 0; i < convertedOrigins.length; i++) {
-    let disp = p5.Vector.sub(convertedNew[i], convertedOrigins[i]);
+  for (let i = 0; i < originalPVectors.length; i++) {
+    let disp = p5.Vector.sub(newPVectors[i], originalPVectors[i]);
     displacements.push(disp);
   }
   return displacements;
@@ -97,14 +105,12 @@ function drawOriginalLocsWithOrigin() {
 
 function drawOriginalLocs() {
   // Draw the original locations of the atoms
-  let convertedOriginal = originalPVectors.map(convertVector);
-  drawEveryAtom(convertedOriginal);
+  drawEveryAtom(originalPVectors);
 }
 
 function drawNewLocs() {
   // Draw the relaxed locations of the atoms
-  let convertedNew = newPVectors.map(convertVector);
-  drawEveryAtom(convertedNew);
+  drawEveryAtom(newPVectors);
 }
 
 function drawAtomsFromPoint(latticePoint, atomCoords) {
@@ -122,18 +128,15 @@ function drawAtomsFromPoint(latticePoint, atomCoords) {
 
 function drawDispVectors() {
   // Draw lines between original and new locations of atoms
-  let convertedOrigins = originalPVectors.map(convertVector);
-  let convertedNew = newPVectors.map(convertVector);
-
   for (const superP of superCellPoints) {
     push();
     translate(superP.x, superP.y, superP.z);
     for (const latticeP of latticePoints) {
       push();
       translate(latticeP.x, latticeP.y, latticeP.z);
-      for (let i = 0; i < convertedOrigins.length; i++) {
-        const orig = convertedOrigins[i];
-        const newP = convertedNew[i];
+      for (let i = 0; i < originalPVectors.length; i++) {
+        const orig = originalPVectors[i];
+        const newP = newPVectors[i];
         line(orig.x, orig.y, orig.z, newP.x, newP.y, newP.z);
       }
       pop();
@@ -151,16 +154,14 @@ function getColourMag(disp) {
 
 function drawScaledDispVectors(dispScale) {
   // Draw lines between original and new locations of atoms
-  let convertedOrigins = originalPVectors.map(convertVector);
-
   for (const superP of superCellPoints) {
     push();
     translate(superP.x, superP.y, superP.z);
     for (const latticeP of latticePoints) {
       push();
       translate(latticeP.x, latticeP.y, latticeP.z);
-      for (let i = 0; i < convertedOrigins.length; i++) {
-        const orig = convertedOrigins[i];
+      for (let i = 0; i < originalPVectors.length; i++) {
+        const orig = originalPVectors[i];
         let newP = p5.Vector.add(orig, dispVectors[i]);
         newP.mult(dispScale);
 
@@ -252,7 +253,7 @@ function drawVacancyAtOrigin() {
   for (const superP of superCellPoints) {
     push();
     translate(superP.x, superP.y, superP.z);
-    for (latticeP of latticePoints) {
+    for (let latticeP of latticePoints) {
       push();
       translate(latticeP.x, latticeP.y, latticeP.z);
       sphere(10);
@@ -280,7 +281,7 @@ function draw() {
   //   drawNewLocs();
   // }
 
-  drawScaledDispVectors(1.3);
+  drawScaledDispVectors(1.2);
   drawVacancyAtOrigin();
   drawSubUnitCell();
 
