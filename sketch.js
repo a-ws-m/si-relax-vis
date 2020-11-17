@@ -16,6 +16,9 @@ let c;
 
 let drawOrigin = true;
 
+let maxMag;
+let minMag;
+
 function preload() {
   originalPosTable = loadTable("data/original_pos.csv", "csv");
   relaxedPosTable = loadTable("data/relaxed_pos.csv", "csv");
@@ -30,10 +33,15 @@ function setup() {
   newPVectors = getVectors(relaxedPosTable);
   dispVectors = calcDisplacementVectors();
 
+  const mags = dispVectors.map(vec => vec.mag());
+  maxMag = Math.max.apply(Math, mags);
+  minMag = Math.min.apply(Math, mags);
+
   superCellPoints = [createVector(0, 0, 0)];  // Just a single cell
   const periodicNeg = [createVector(-1, -1, -1), createVector(-1, -1, 0), createVector(-1, 0, -1), createVector(0, -1, -1)];
   const periodicUnit = [createVector(-1, 0, 0), createVector(0, -1, 0), createVector(0, 0, -1)];
   superCellPoints = superCellPoints.concat(periodicNeg, periodicUnit);
+  // superCellPoints.push(createVector(-0.5, 0, 0.5), createVector(0, 0.5, 0.5), createVector(-0.5, 0.5, 0));
 
   superCellPoints = superCellPoints.map(convertVector);
 
@@ -134,6 +142,13 @@ function drawDispVectors() {
   }
 }
 
+function getColourMag(disp) {
+  // Get a colour depending on the magnitude of the displacement
+  const colVal = map(disp.mag(), minMag, maxMag, 0, 255);
+  const c = color(255 - colVal, 0, colVal);
+  return c
+}
+
 function drawScaledDispVectors(dispScale) {
   // Draw lines between original and new locations of atoms
   let convertedOrigins = originalPVectors.map(convertVector);
@@ -149,7 +164,7 @@ function drawScaledDispVectors(dispScale) {
         let newP = p5.Vector.add(orig, dispVectors[i]);
         newP.mult(dispScale);
 
-        stroke(255);
+        stroke(getColourMag(dispVectors[i]));
         line(orig.x, orig.y, orig.z, newP.x, newP.y, newP.z);
 
         noStroke();
