@@ -1,5 +1,6 @@
 const scaleFactor = 400;  // The scale factor by which to multiply fractional coordinates
 const sphereSize = 40;
+const smallSphereSize = 10;
 
 let originalPosTable;
 let relaxedPosTable;
@@ -162,8 +163,8 @@ function drawScaledDispVectors(dispScale) {
       translate(latticeP.x, latticeP.y, latticeP.z);
       for (let i = 0; i < originalPVectors.length; i++) {
         const orig = originalPVectors[i];
-        let newP = p5.Vector.add(orig, dispVectors[i]);
-        newP.mult(dispScale);
+        const scaledDisp = p5.Vector.mult(dispVectors[i], dispScale);
+        const newP = p5.Vector.add(orig, scaledDisp);
 
         stroke(getColourMag(dispVectors[i]));
         line(orig.x, orig.y, orig.z, newP.x, newP.y, newP.z);
@@ -173,14 +174,14 @@ function drawScaledDispVectors(dispScale) {
         fill(0, 0, 255);
         push();
         translate(orig.x, orig.y, orig.z);
-        sphere(10);
+        sphere(smallSphereSize);
         pop();
 
         ambientMaterial(255, 0, 0);
         fill(255, 0, 0);
         push();
         translate(newP.x, newP.y, newP.z);
-        sphere(10);
+        sphere(smallSphereSize);
         pop();
       }
       pop();
@@ -256,7 +257,7 @@ function drawVacancyAtOrigin() {
     for (let latticeP of latticePoints) {
       push();
       translate(latticeP.x, latticeP.y, latticeP.z);
-      sphere(10);
+      sphere(smallSphereSize);
       pop();
     }
     pop();
@@ -281,7 +282,7 @@ function draw() {
   //   drawNewLocs();
   // }
 
-  drawScaledDispVectors(1.2);
+  drawScaledDispVectors(200);
   drawVacancyAtOrigin();
   drawSubUnitCell();
 
