@@ -1,5 +1,6 @@
 const scaleFactor = 400;  // The scale factor by which to multiply fractional coordinates
 const sphereSize = 40;
+const smallSphereSize = 5;
 
 let originalPosTable;
 let relaxedPosTable;
@@ -16,8 +17,8 @@ let c;
 
 let drawOrigin = true;
 
-let maxMag;
-let minMag;
+let maxMagSq;
+let minMagSq;
 
 function preload() {
   originalPosTable = loadTable("data/original_pos.csv", "csv");
@@ -27,7 +28,7 @@ function preload() {
 function setup() {
   // put setup code here
   c = createCanvas(windowWidth, windowHeight, WEBGL);
-  perspective(PI / 5);
+  perspective(PI / 6);
 
   originalPVectors = getVectors(originalPosTable);
   newPVectors = getVectors(relaxedPosTable);
@@ -37,9 +38,9 @@ function setup() {
 
   dispVectors = calcDisplacementVectors();
 
-  const mags = dispVectors.map(vec => vec.mag());
-  maxMag = Math.max.apply(Math, mags);
-  minMag = Math.min.apply(Math, mags);
+  const magSqs = dispVectors.map(vec => vec.magSq());
+  maxMagSq = Math.max.apply(Math, magSqs);
+  minMagSq = Math.min.apply(Math, magSqs);
 
   superCellPoints = [createVector(0, 0, 0)];  // Just a single cell
   superCellPoints.push(createVector(1, 0, 0)); // Required
@@ -147,7 +148,7 @@ function drawDispVectors() {
 
 function getColourMag(disp) {
   // Get a colour depending on the magnitude of the displacement
-  const colVal = map(disp.mag(), minMag, maxMag, 0, 255);
+  const colVal = map(disp.magSq(), minMagSq, maxMagSq, 0, 255);
   const c = color(colVal, 0, 255 - colVal);
   return c
 }
@@ -162,8 +163,8 @@ function drawScaledDispVectors(dispScale) {
       translate(latticeP.x, latticeP.y, latticeP.z);
       for (let i = 0; i < originalPVectors.length; i++) {
         const orig = originalPVectors[i];
-        let newP = p5.Vector.add(orig, dispVectors[i]);
-        newP.mult(dispScale);
+        const scaledDisp = p5.Vector.mult(dispVectors[i], dispScale);
+        const newP = p5.Vector.add(orig, scaledDisp);
 
         stroke(getColourMag(dispVectors[i]));
         line(orig.x, orig.y, orig.z, newP.x, newP.y, newP.z);
@@ -173,14 +174,14 @@ function drawScaledDispVectors(dispScale) {
         fill(0, 0, 255);
         push();
         translate(orig.x, orig.y, orig.z);
-        sphere(10);
+        sphere(smallSphereSize);
         pop();
 
         ambientMaterial(255, 0, 0);
         fill(255, 0, 0);
         push();
         translate(newP.x, newP.y, newP.z);
-        sphere(10);
+        sphere(2);
         pop();
       }
       pop();
@@ -256,7 +257,7 @@ function drawVacancyAtOrigin() {
     for (let latticeP of latticePoints) {
       push();
       translate(latticeP.x, latticeP.y, latticeP.z);
-      sphere(10);
+      sphere(smallSphereSize);
       pop();
     }
     pop();
@@ -281,7 +282,7 @@ function draw() {
   //   drawNewLocs();
   // }
 
-  drawScaledDispVectors(1.2);
+  drawScaledDispVectors(200);
   drawVacancyAtOrigin();
   drawSubUnitCell();
 
