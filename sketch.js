@@ -17,8 +17,8 @@ let c;
 
 let drawOrigin = true;
 
-let maxMag;
-let minMag;
+let maxMagSq;
+let minMagSq;
 
 function preload() {
   originalPosTable = loadTable("data/original_pos.csv", "csv");
@@ -38,9 +38,9 @@ function setup() {
 
   dispVectors = calcDisplacementVectors();
 
-  const mags = dispVectors.map(vec => vec.mag());
-  maxMag = Math.max.apply(Math, mags);
-  minMag = Math.min.apply(Math, mags);
+  const magSqs = dispVectors.map(vec => vec.magSq());
+  maxMagSq = Math.max.apply(Math, magSqs);
+  minMagSq = Math.min.apply(Math, magSqs);
 
   superCellPoints = [createVector(0, 0, 0)];  // Just a single cell
   superCellPoints.push(createVector(1, 0, 0)); // Required
@@ -148,7 +148,7 @@ function drawDispVectors() {
 
 function getColourMag(disp) {
   // Get a colour depending on the magnitude of the displacement
-  const colVal = map(disp.mag(), minMag, maxMag, 0, 255);
+  const colVal = map(disp.magSq(), minMagSq, maxMagSq, 0, 255);
   const c = color(colVal, 0, 255 - colVal);
   return c
 }
