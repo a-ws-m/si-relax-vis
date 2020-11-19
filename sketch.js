@@ -1,6 +1,6 @@
 const scaleFactor = 400;  // The scale factor by which to multiply fractional coordinates
 const sphereSize = 40;
-const smallSphereSize = 10;
+const smallSphereSize = 5;
 
 let originalPosTable;
 let relaxedPosTable;
@@ -28,7 +28,7 @@ function preload() {
 function setup() {
   // put setup code here
   c = createCanvas(windowWidth, windowHeight, WEBGL);
-  perspective(PI / 5);
+  perspective(PI / 6);
 
   originalPVectors = getVectors(originalPosTable);
   newPVectors = getVectors(relaxedPosTable);
@@ -181,7 +181,7 @@ function drawScaledDispVectors(dispScale) {
         fill(255, 0, 0);
         push();
         translate(newP.x, newP.y, newP.z);
-        sphere(smallSphereSize);
+        sphere(2);
         pop();
       }
       pop();
