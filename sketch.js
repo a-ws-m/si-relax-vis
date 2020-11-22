@@ -282,7 +282,7 @@ function draw() {
   //   drawNewLocs();
   // }
 
-  drawScaledDispVectors(200);
+  drawScaledDispVectors(10);
   drawVacancyAtOrigin();
   drawSubUnitCell();
 
